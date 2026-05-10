@@ -1,4 +1,4 @@
-package com.example.alertpilot
+package com.dey.alertpilot
 
 import org.junit.Test
 
