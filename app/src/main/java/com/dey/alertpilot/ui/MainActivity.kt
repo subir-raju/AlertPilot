@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,11 +19,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.dey.alertpilot.data.model.ImportanceLevel
+import com.dey.alertpilot.data.model.NotificationItem
 import com.dey.alertpilot.data.repository.NotificationRepository
 import com.dey.alertpilot.di.AppModule
-import com.dey.alertpilot.data.model.NotificationItem
-import com.dey.alertpilot.data.model.ImportanceLevel
-import kotlinx.coroutines.flow.collectLatest
 
 class MainActivity : ComponentActivity() {
 
@@ -45,6 +45,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ImportantAlertsAppScreen(viewModel: MainViewModel) {
     val all by viewModel.allNotifications.collectAsState()
@@ -85,7 +86,6 @@ fun ImportantAlertsAppScreen(viewModel: MainViewModel) {
 
             Button(
                 onClick = {
-                    // Open notification access settings so user can enable your app
                     val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
                     context.startActivity(intent)
                 },
