@@ -13,7 +13,19 @@ class NotificationListener : NotificationListenerService() {
         super.onNotificationPosted(sbn)
         if (sbn == null) return
 
-        val extras = sbn.notification.extras
+        // Ignore our own app's notifications (safety)
+        if (sbn.packageName == packageName) return
+
+        val notification = sbn.notification
+
+        // Ignore group summary notifications (they cause duplicates)
+        val isGroupSummary =
+            (notification.flags and android.app.Notification.FLAG_GROUP_SUMMARY) != 0
+
+        // Ignore ongoing notifications like music players if you want
+        if (isGroupSummary || sbn.isOngoing) return
+
+        val extras = notification.extras
         val title = extras.getString(android.app.Notification.EXTRA_TITLE)
         val text = extras.getCharSequence(android.app.Notification.EXTRA_TEXT)?.toString()
         val packageName = sbn.packageName
