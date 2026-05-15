@@ -40,7 +40,7 @@ class NotificationListener : NotificationListenerService() {
 
         repo.addNotification(
             packageName = packageName,
-            appName = appName,          // ← pass app name
+            appName = appName,
             title = title,
             text = text,
             postedAtMillis = postedAt,

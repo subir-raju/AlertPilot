@@ -167,7 +167,7 @@ fun NotificationCard(item: NotificationItem) {
             }
             Spacer(Modifier.height(4.dp))
             Text(
-                text = "Source: ${item.packageName}",
+                text = "Source: ${item.appName}",
                 style = MaterialTheme.typography.bodySmall
             )
         }
