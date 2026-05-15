@@ -7,5 +7,7 @@ data class NotificationItem(
     val text: String?,
     val postedAtMillis: Long,
     val importance: ImportanceLevel,
-    val isOngoing: Boolean
+    val isOngoing: Boolean,
+    val isRead: Boolean = false,
+    val isDeleted: Boolean = false
 )

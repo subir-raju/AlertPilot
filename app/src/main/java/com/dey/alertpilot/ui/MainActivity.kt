@@ -108,27 +108,36 @@ fun ImportantAlertsAppScreen(viewModel: MainViewModel) {
                     Text("No notifications captured yet.")
                 }
             } else {
-                NotificationList(list = list)
+                NotificationList(list = list, viewModel = viewModel)
             }
         }
     }
 }
 
 @Composable
-fun NotificationList(list: List<NotificationItem>) {
+fun NotificationList(
+    list: List<NotificationItem>,
+    viewModel: MainViewModel) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         items(list) { item ->
-            NotificationCard(item = item)
+            NotificationCard(
+                item = item,
+                onOpen = {id -> viewModel.onNotificationOpened(id) },
+                onDelete = {id -> viewModel.onNotificationDeleted(id) })
         }
     }
 }
 
 @Composable
-fun NotificationCard(item: NotificationItem) {
+fun NotificationCard(
+    item: NotificationItem,
+    onOpen: (String) -> Unit,
+    onDelete: (String) -> Unit
+) {
     val badgeColor = when (item.importance) {
         ImportanceLevel.HIGH -> MaterialTheme.colorScheme.error
         ImportanceLevel.MEDIUM -> MaterialTheme.colorScheme.tertiary
@@ -136,7 +145,8 @@ fun NotificationCard(item: NotificationItem) {
     }
 
     ElevatedCard(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        onClick = { onOpen(item.id) }
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(

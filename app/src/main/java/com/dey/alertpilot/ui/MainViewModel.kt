@@ -29,4 +29,12 @@ class MainViewModel(
     }
 
     fun getById(id: String): NotificationItem? = repository.getNotification(id)
+
+    fun onNotificationOpened(id: String) {
+        repository.markAsRead(id)
+    }
+
+    fun onNotificationDeleted(id: String) {
+        repository.delete(id)
+    }
 }

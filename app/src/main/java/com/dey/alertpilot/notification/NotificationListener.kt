@@ -48,10 +48,9 @@ class NotificationListener : NotificationListenerService() {
         )
     }
 
-    // Keep or ignore removals; for now we don't auto-delete from our history
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
         super.onNotificationRemoved(sbn)
-        // v1: do nothing so our own history is not cleared automatically
+        // IMPORTANT: do not remove from repo here – we keep history
     }
 
     private fun getAppNameFromPackage(packageName: String): String {

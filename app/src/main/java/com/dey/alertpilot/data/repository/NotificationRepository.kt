@@ -45,4 +45,18 @@ class NotificationRepository(
             it.importance == ImportanceLevel.HIGH
         }
     }
+
+    fun markAsRead(id: String) {
+        _notifications.value = _notifications.value.map { item ->
+            if (item.id == id) item.copy(isRead = true) else item
+        }
+    }
+
+    fun delete(id: String) {
+        _notifications.value = _notifications.value.filterNot { it.id == id }
+        // If you prefer soft delete:
+        // _notifications.value = _notifications.value.map { item ->
+        //     if (item.id == id) item.copy(isDeleted = true) else item
+        // }
+    }
 }
