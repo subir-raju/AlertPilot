@@ -1,5 +1,6 @@
 package com.dey.alertpilot.notification
 
+import android.content.pm.PackageManager
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
@@ -32,10 +33,14 @@ class NotificationListener : NotificationListenerService() {
         val postedAt = sbn.postTime
         val isOngoing = sbn.isOngoing
 
-        Log.d("NotificationListener", "New notification from $packageName: $title - $text")
+        // NEW: resolve human‑readable app name like "Gmail", "Facebook"
+        val appName = getAppNameFromPackage(packageName)
+
+        Log.d("NotificationListener", "New notification from $appName ($packageName): $title - $text")
 
         repo.addNotification(
             packageName = packageName,
+            appName = appName,          // ← pass app name
             title = title,
             text = text,
             postedAtMillis = postedAt,
@@ -43,8 +48,19 @@ class NotificationListener : NotificationListenerService() {
         )
     }
 
+    // Keep or ignore removals; for now we don't auto-delete from our history
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
         super.onNotificationRemoved(sbn)
-        // For v1 we don't need removal logic, but you could mark items as dismissed here
+        // v1: do nothing so our own history is not cleared automatically
+    }
+
+    private fun getAppNameFromPackage(packageName: String): String {
+        return try {
+            val pm: PackageManager = applicationContext.packageManager
+            val appInfo = pm.getApplicationInfo(packageName, 0)
+            pm.getApplicationLabel(appInfo).toString()
+        } catch (e: PackageManager.NameNotFoundException) {
+            packageName // fallback
+        }
     }
 }

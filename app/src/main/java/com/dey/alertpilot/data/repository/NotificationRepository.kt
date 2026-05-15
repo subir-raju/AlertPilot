@@ -14,9 +14,9 @@ class NotificationRepository(
 
     private val _notifications = MutableStateFlow<List<NotificationItem>>(emptyList())
     val notifications: StateFlow<List<NotificationItem>> = _notifications.asStateFlow()
-
     fun addNotification(
         packageName: String,
+        appName: String,
         title: String?,
         text: String?,
         postedAtMillis: Long,
@@ -26,6 +26,7 @@ class NotificationRepository(
         val item = NotificationItem(
             id = UUID.randomUUID().toString(),
             packageName = packageName,
+            appName = appName,
             title = title,
             text = text,
             postedAtMillis = postedAtMillis,
