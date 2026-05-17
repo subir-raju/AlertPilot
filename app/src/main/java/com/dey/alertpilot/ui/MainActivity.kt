@@ -23,6 +23,9 @@ import com.dey.alertpilot.data.model.ImportanceLevel
 import com.dey.alertpilot.data.model.NotificationItem
 import com.dey.alertpilot.data.repository.NotificationRepository
 import com.dey.alertpilot.di.AppModule
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.AlertDialog
+
 
 class MainActivity : ComponentActivity() {
 
@@ -144,9 +147,17 @@ fun NotificationCard(
         ImportanceLevel.LOW -> MaterialTheme.colorScheme.outline
     }
 
+    // Background shade based on read/unread
+    val containerColor =
+        if (item.isRead) MaterialTheme.colorScheme.surface
+        else MaterialTheme.colorScheme.surfaceVariant
+
     ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
-        onClick = { onOpen(item.id) }
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = containerColor
+        ),
+        onClick = { onOpen(item.id) } // mark as read + open dialog
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Row(
@@ -157,7 +168,7 @@ fun NotificationCard(
                 Text(
                     text = item.title.orEmpty().ifBlank { "(no title)" },
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = if (item.isRead) FontWeight.Normal else FontWeight.SemiBold
                 )
                 AssistChip(
                     onClick = {},
@@ -180,6 +191,13 @@ fun NotificationCard(
                 text = "Source: ${item.appName}",
                 style = MaterialTheme.typography.bodySmall
             )
+            Spacer(Modifier.height(4.dp))
+            TextButton(
+                onClick = { onDelete(item.id) },
+                modifier = Modifier.align(Alignment.End)
+            ) {
+                Text("Delete")
+            }
         }
     }
 }
