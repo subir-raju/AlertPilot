@@ -78,12 +78,12 @@ fun ImportantAlertsAppScreen(viewModel: MainViewModel) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = if (showImportantOnly) "Showing: Important only" else "Showing: All",
+                    text = if (showImportantOnly) "Showing: Important Notifications" else "Showing: All",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold
                 )
                 Button(onClick = { showImportantOnly = !showImportantOnly }) {
-                    Text(if (showImportantOnly) "Show all" else "Show important")
+                    Text(if (showImportantOnly) "Show All" else "Show Important Notifications")
                 }
             }
 
@@ -96,7 +96,7 @@ fun ImportantAlertsAppScreen(viewModel: MainViewModel) {
                     .padding(horizontal = 12.dp)
                     .fillMaxWidth()
             ) {
-                Text("Open notification access settings")
+                Text("Open Notification Access Settings")
             }
 
             Spacer(modifier = Modifier.height(8.dp))
