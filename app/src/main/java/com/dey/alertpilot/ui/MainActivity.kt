@@ -78,12 +78,12 @@ fun ImportantAlertsAppScreen(viewModel: MainViewModel) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = if (showImportantOnly) "Showing: Important Notifications" else "Showing: All",
+                    text = if (showImportantOnly) "Showing: Priority" else "Showing: Everything",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold
                 )
                 Button(onClick = { showImportantOnly = !showImportantOnly }) {
-                    Text(if (showImportantOnly) "Show All" else "Show Important Notifications")
+                    Text(if (showImportantOnly) "Show: Everything" else "Show: Priority")
                 }
             }
 
