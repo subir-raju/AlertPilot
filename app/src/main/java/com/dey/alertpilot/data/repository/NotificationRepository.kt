@@ -42,7 +42,8 @@ class NotificationRepository(
 
     fun getImportantOnly(): List<NotificationItem> {
         return _notifications.value.filter {
-            it.importance == ImportanceLevel.HIGH
+            it.importance == ImportanceLevel.HIGH ||
+                    it.importance == ImportanceLevel.MEDIUM
         }
     }
 

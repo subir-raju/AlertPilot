@@ -120,7 +120,38 @@ fun ImportantAlertsAppScreen(viewModel: MainViewModel) {
 @Composable
 fun NotificationList(
     list: List<NotificationItem>,
-    viewModel: MainViewModel) {
+    viewModel: MainViewModel
+) {
+    var selected by remember { mutableStateOf<NotificationItem?>(null) }
+
+    // Dialog showing details
+    selected?.let { item ->
+        AlertDialog(
+            onDismissRequest = { selected = null },
+            title = {
+                Text(item.title.orEmpty().ifBlank { "(no title)" })
+            },
+            text = {
+                Column {
+                    Text(text = "Source: ${item.appName}")
+                    Spacer(Modifier.height(4.dp))
+                    Text(text = "Package: ${item.packageName}")
+                    Spacer(Modifier.height(4.dp))
+                    Text(text = "Received: ${java.util.Date(item.postedAtMillis)}")
+                    Spacer(Modifier.height(8.dp))
+                    if (!item.text.isNullOrBlank()) {
+                        Text(text = item.text!!)
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { selected = null }) {
+                    Text("Close")
+                }
+            }
+        )
+    }
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(12.dp),
@@ -129,8 +160,15 @@ fun NotificationList(
         items(list) { item ->
             NotificationCard(
                 item = item,
-                onOpen = {id -> viewModel.onNotificationOpened(id) },
-                onDelete = {id -> viewModel.onNotificationDeleted(id) })
+                onOpen = { id ->
+                    viewModel.onNotificationOpened(id) // mark as read in repo
+                    selected = item                    // open dialog
+                },
+                onDelete = { id ->
+                    viewModel.onNotificationDeleted(id)
+                    if (selected?.id == id) selected = null
+                }
+            )
         }
     }
 }
