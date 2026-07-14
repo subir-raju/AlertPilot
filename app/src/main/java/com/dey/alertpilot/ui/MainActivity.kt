@@ -33,8 +33,9 @@ class MainActivity : ComponentActivity() {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(modelClass: Class<T>): T {
                 val repo: NotificationRepository = AppModule.notificationRepository
+                val emailApi = AppModule.emailApi
                 @Suppress("UNCHECKED_CAST")
-                return MainViewModel(repo) as T
+                return MainViewModel(repo, emailApi) as T
             }
         }
     }
