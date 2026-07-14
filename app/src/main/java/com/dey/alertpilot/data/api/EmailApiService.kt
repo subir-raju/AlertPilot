@@ -12,22 +12,3 @@ interface EmailApiService {
     @GET("important-emails")
     suspend fun getImportantEmails(@Query("limit") limit: Int): List<EmailSummaryDto>
 }
-
-data class EmailRequest(
-    val recipient: String,
-    val subject: String,
-    val body: String
-)
-
-data class EmailResponse(
-    val success: Boolean,
-    val message: String
-)
-
-data class EmailSummaryDto(
-    val id: String,
-    val subject: String,
-    val sender: String,
-    val timestamp: Long,
-    val snippet: String
-)
