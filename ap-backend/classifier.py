@@ -2,43 +2,62 @@
 from enum import Enum
 import re
 
-
 class ImportanceLevel(str, Enum):
     HIGH = "HIGH"
     MEDIUM = "MEDIUM"
     LOW = "LOW"
 
-
 class ImportanceClassifier:
     def classify(self, subject: str | None, body: str | None) -> ImportanceLevel:
-        text = f"{subject or ''} {body or ''}".lower()
+        content = f"{subject or ''} {body or ''}".lower()
 
-        if self._is_deadline(text) or self._is_penalty(text) or self._is_account_risk(text):
+        # 1) Hard HIGH rules: deadlines, penalties, overdue, critical account, travel urgency
+        if (self._is_deadline(content) or
+            self._is_penalty(content) or
+            self._is_account_risk(content) or
+            self._is_travel_urgency(content)):
             return ImportanceLevel.HIGH
 
-        if self._is_action_required(text) or self._is_reminder(text):
+        # 2) Medium rules: tasks / reminders without hard deadline
+        if self._is_action_required(content) or self._is_reminder(content):
             return ImportanceLevel.MEDIUM
 
-        if self._is_promotion(text):
+        # 3) Promotion / marketing (Ignore unless it has a deadline/urgency)
+        if self._is_promotion(content) and not self._is_deadline(content) and not self._is_travel_urgency(content):
             return ImportanceLevel.LOW
 
         return ImportanceLevel.LOW
+
+    def _is_travel_urgency(self, text: str) -> bool:
+        travel_keywords = ["flight", "boarding", "check-in", "check in", "airline", "gate change", "delayed", "ryanair", "boarding pass"]
+        urgency_indicators = [
+            "fee", "€", "$", "avoid", "mandatory", "required", "immediately",
+            "before you fly", "hours before", "days before", "action required",
+            "need to do", "must download", "only way to access"
+        ]
+
+        has_travel = any(k in text for k in travel_keywords)
+        has_urgency = any(k in text for k in urgency_indicators)
+        return has_travel and has_urgency
 
     def _is_deadline(self, text: str) -> bool:
         deadline_keywords = [
             "deadline", "due date", "due on", "due by", "submit by",
             "submission deadline", "last date", "final date",
             "must submit", "must be submitted", "expiration", "expires",
-            "valid until", "cut-off", "cutoff"
+            "valid until", "cut-off", "cutoff", "before you"
         ]
         time_keywords = [
-            "today", "tonight", "tomorrow",
-            "by end of day", "eod", "within 24 hours", "asap", "immediately", "urgent"
+            "today", "tonight", "tomorrow", "asap", "immediately", "urgent",
+            "hours", "minutes", "days", "eod"
         ]
         has_deadline = any(k in text for k in deadline_keywords)
-        has_time = any(
-            k in text for k in time_keywords) or self._contains_date(text)
-        return (has_deadline and has_time) or ("urgent" in text and has_deadline)
+        has_time = any(k in text for k in time_keywords) or self._contains_date(text)
+
+        # Regex for relative time: "2 hours before", "24 hours before"
+        has_relative_time = bool(re.search(r"\d+\s*(hour|minute|day)s?\s*before", text))
+
+        return (has_deadline and has_time) or ("urgent" in text and has_deadline) or has_relative_time
 
     def _contains_date(self, text: str) -> bool:
         patterns = [
@@ -55,9 +74,12 @@ class ImportanceClassifier:
         words = [
             "fine", "penalty", "charged", "fee will be applied",
             "late fee", "overdue", "past due", "will be cancelled", "will be canceled",
-            "unpaid", "invoice", "payment failed", "collection", "legal action"
+            "unpaid", "invoice", "payment failed", "collection", "legal action",
+            "avoid a fee", "extra charge"
         ]
-        return any(w in text for w in words)
+        has_currency = any(c in text for c in ["€", "$", "£"])
+        has_fee_context = any(w in text for w in ["fee", "charge", "pay"])
+        return any(w in text for w in words) or (has_currency and has_fee_context)
 
     def _is_account_risk(self, text: str) -> bool:
         words = [
@@ -70,7 +92,8 @@ class ImportanceClassifier:
     def _is_action_required(self, text: str) -> bool:
         words = [
             "action required", "please confirm", "please review",
-            "approval needed", "respond", "reply", "update your info"
+            "approval needed", "respond", "reply", "update your info",
+            "need to do", "what do i need", "download the app", "you need the"
         ]
         return any(w in text for w in words)
 

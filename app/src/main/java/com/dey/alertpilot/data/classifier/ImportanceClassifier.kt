@@ -16,8 +16,8 @@ class ImportanceClassifier {
             if (!text.isNullOrBlank()) append(text)
         }.lowercase(Locale.getDefault())
 
-        // 1) Hard HIGH rules: deadlines, penalties, overdue, critical account
-        if (isDeadline(content) || isPenalty(content) || isAccountRisk(content)) {
+        // 1) Hard HIGH rules: deadlines, penalties, overdue, critical account, travel urgency
+        if (isDeadline(content) || isPenalty(content) || isAccountRisk(content) || isTravelUrgency(content)) {
             return ImportanceLevel.HIGH
         }
 
@@ -26,8 +26,8 @@ class ImportanceClassifier {
             return ImportanceLevel.MEDIUM
         }
 
-        // 3) Promotion / marketing
-        if (isPromotion(content)) {
+        // 3) Promotion / marketing (Check this last, as some promos might trigger "action required" but we want to ignore them unless they have deadlines)
+        if (isPromotion(content) && !isDeadline(content) && !isTravelUrgency(content)) {
             return ImportanceLevel.LOW
         }
 
@@ -35,27 +35,45 @@ class ImportanceClassifier {
         return ImportanceLevel.LOW
     }
 
+    private fun isTravelUrgency(text: String): Boolean {
+        // Broaden keywords for travel
+        val travelKeywords = listOf("flight", "boarding", "check-in", "check in", "airline", "gate change", "delayed", "ryanair", "boarding pass")
+        
+        // Indicators that the travel info is urgent/mandatory
+        val urgencyIndicators = listOf(
+            "fee", "€", "$", "avoid", "mandatory", "required", "immediately", 
+            "before you fly", "hours before", "days before", "action required", 
+            "must download", "only way to access"
+        )
+        
+        val hasTravelWord = travelKeywords.any { it in text }
+        val hasUrgency = urgencyIndicators.any { it in text }
+        
+        return hasTravelWord && hasUrgency
+    }
+
     private fun isDeadline(text: String): Boolean {
         val deadlineKeywords = listOf(
             "deadline", "due date", "due on", "due by", "submit by", "submission deadline",
             "last date", "final date", "must submit", "must be submitted", "expiration", "expires",
-            "valid until", "cut-off", "cutoff"
+            "valid until", "cut-off", "cutoff", "action needed by", "before you"
         )
 
         val timeKeywords = listOf(
-            "today", "tonight", "tomorrow",
-            "by end of day", "eod", "within 24 hours", "asap", "immediately", "urgent"
+            "today", "tonight", "tomorrow", "asap", "immediately", "urgent",
+            "hours", "minutes", "days", "eod"
         )
 
         val hasDeadlineWord = deadlineKeywords.any { it in text }
         val hasTimeWord = timeKeywords.any { it in text } || containsDate(text)
 
-        // If it says "Urgent" and has a deadline word, it's HIGH
-        return (hasDeadlineWord && hasTimeWord) || (text.contains("urgent") && hasDeadlineWord)
+        // Combinations like "2 hours before" or "within 24 hours"
+        val hasRelativeTime = text.contains(Regex("\\d+\\s*(hour|minute|day)s?\\s*before"))
+
+        return (hasDeadlineWord && hasTimeWord) || (text.contains("urgent") && hasDeadlineWord) || hasRelativeTime
     }
 
     private fun containsDate(text: String): Boolean {
-        // Very simple date pattern: 2026-05-21, 21/05/2026, 21.05.2026, 21 May, May 21
         val datePatterns = listOf(
             "\\b\\d{4}-\\d{1,2}-\\d{1,2}\\b",       // 2026-05-21
             "\\b\\d{1,2}/\\d{1,2}/\\d{2,4}\\b",     // 21/05/2026
@@ -74,9 +92,13 @@ class ImportanceClassifier {
             "fine", "penalty", "charged", "fee will be applied",
             "late fee", "late payment fee", "overdue", "past due",
             "will be cancelled", "will be canceled", "unpaid", "invoice", "payment failed",
-            "collection", "legal action"
+            "collection", "legal action", "avoid a fee", "extra charge"
         )
-        return penaltyKeywords.any { it in text }
+        // Also check for currency symbols followed by numbers or keywords
+        val hasCurrency = text.contains("€") || text.contains("$") || text.contains("£")
+        val hasFeeContext = text.contains("fee") || text.contains("charge") || text.contains("pay")
+        
+        return penaltyKeywords.any { it in text } || (hasCurrency && hasFeeContext)
     }
 
     private fun isAccountRisk(text: String): Boolean {
@@ -91,7 +113,8 @@ class ImportanceClassifier {
     private fun isActionRequired(text: String): Boolean {
         val words = listOf(
             "action required", "please confirm", "please review",
-            "approve", "approval needed", "respond", "reply", "update your info"
+            "approve", "approval needed", "respond", "reply", "update your info",
+            "need to do", "what do i need", "download the app", "you need the"
         )
         return words.any { it in text }
     }
