@@ -28,16 +28,17 @@ class ImportanceClassifier:
         deadline_keywords = [
             "deadline", "due date", "due on", "due by", "submit by",
             "submission deadline", "last date", "final date",
-            "must submit", "must be submitted"
+            "must submit", "must be submitted", "expiration", "expires",
+            "valid until", "cut-off", "cutoff"
         ]
         time_keywords = [
             "today", "tonight", "tomorrow",
-            "by end of day", "eod", "within 24 hours"
+            "by end of day", "eod", "within 24 hours", "asap", "immediately", "urgent"
         ]
         has_deadline = any(k in text for k in deadline_keywords)
         has_time = any(
             k in text for k in time_keywords) or self._contains_date(text)
-        return has_deadline and has_time
+        return (has_deadline and has_time) or ("urgent" in text and has_deadline)
 
     def _contains_date(self, text: str) -> bool:
         patterns = [
@@ -46,20 +47,23 @@ class ImportanceClassifier:
             r"\b\d{1,2}\.\d{1,2}\.\d{2,4}\b",    # 21.05.2026
             r"\b\d{1,2}\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\b",
             r"\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s+\d{1,2}\b",
+            r"\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\b"
         ]
         return any(re.search(p, text, flags=re.IGNORECASE) for p in patterns)
 
     def _is_penalty(self, text: str) -> bool:
         words = [
             "fine", "penalty", "charged", "fee will be applied",
-            "late fee", "overdue", "past due", "will be cancelled", "will be canceled"
+            "late fee", "overdue", "past due", "will be cancelled", "will be canceled",
+            "unpaid", "invoice", "payment failed", "collection", "legal action"
         ]
         return any(w in text for w in words)
 
     def _is_account_risk(self, text: str) -> bool:
         words = [
             "suspicious activity", "unusual activity", "account locked",
-            "account suspended", "reset your password", "security alert"
+            "account suspended", "reset your password", "security alert",
+            "unauthorized", "login attempt", "verify your identity", "otp", "verification code"
         ]
         return any(w in text for w in words)
 

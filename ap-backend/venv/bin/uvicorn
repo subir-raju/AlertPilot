@@ -1,4 +1,4 @@
-#!/Users/subirdey/AndroidStudioProjects/AlertPilot/ap-backend/venv/bin/python
+#!/Users/subirdey/AndroidStudioProjects/AlertPilot/ap-backend/venv/bin/python3.11
 # -*- coding: utf-8 -*-
 import re
 import sys

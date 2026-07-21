@@ -38,18 +38,20 @@ class ImportanceClassifier {
     private fun isDeadline(text: String): Boolean {
         val deadlineKeywords = listOf(
             "deadline", "due date", "due on", "due by", "submit by", "submission deadline",
-            "last date", "final date", "must submit", "must be submitted"
+            "last date", "final date", "must submit", "must be submitted", "expiration", "expires",
+            "valid until", "cut-off", "cutoff"
         )
 
         val timeKeywords = listOf(
             "today", "tonight", "tomorrow",
-            "by end of day", "eod", "within 24 hours"
+            "by end of day", "eod", "within 24 hours", "asap", "immediately", "urgent"
         )
 
         val hasDeadlineWord = deadlineKeywords.any { it in text }
         val hasTimeWord = timeKeywords.any { it in text } || containsDate(text)
 
-        return hasDeadlineWord && hasTimeWord
+        // If it says "Urgent" and has a deadline word, it's HIGH
+        return (hasDeadlineWord && hasTimeWord) || (text.contains("urgent") && hasDeadlineWord)
     }
 
     private fun containsDate(text: String): Boolean {
@@ -59,7 +61,8 @@ class ImportanceClassifier {
             "\\b\\d{1,2}/\\d{1,2}/\\d{2,4}\\b",     // 21/05/2026
             "\\b\\d{1,2}\\.\\d{1,2}\\.\\d{2,4}\\b", // 21.05.2026
             "\\b\\d{1,2}\\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\\b",
-            "\\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\\s+\\d{1,2}\\b"
+            "\\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\\s+\\d{1,2}\\b",
+            "\\b(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\\b"
         )
         return datePatterns.any { pattern ->
             Pattern.compile(pattern, Pattern.CASE_INSENSITIVE).matcher(text).find()
@@ -70,7 +73,8 @@ class ImportanceClassifier {
         val penaltyKeywords = listOf(
             "fine", "penalty", "charged", "fee will be applied",
             "late fee", "late payment fee", "overdue", "past due",
-            "will be cancelled", "will be canceled"
+            "will be cancelled", "will be canceled", "unpaid", "invoice", "payment failed",
+            "collection", "legal action"
         )
         return penaltyKeywords.any { it in text }
     }
@@ -78,7 +82,8 @@ class ImportanceClassifier {
     private fun isAccountRisk(text: String): Boolean {
         val accountKeywords = listOf(
             "suspicious activity", "unusual activity", "account locked",
-            "account suspended", "reset your password", "security alert"
+            "account suspended", "reset your password", "security alert",
+            "unauthorized", "login attempt", "verify your identity", "otp", "verification code"
         )
         return accountKeywords.any { it in text }
     }
