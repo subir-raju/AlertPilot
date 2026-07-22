@@ -207,8 +207,11 @@ fun NotificationCard(
                 Text(
                     text = item.title.orEmpty().ifBlank { "(no title)" },
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = if (item.isRead) FontWeight.Normal else FontWeight.SemiBold
+                    fontWeight = if (item.isRead) FontWeight.Normal else FontWeight.SemiBold,
+                    maxLines = 1,
+                    modifier = Modifier.weight(1f)
                 )
+                Spacer(Modifier.width(8.dp))
                 AssistChip(
                     onClick = {},
                     label = { Text(item.importance.name) },
@@ -218,24 +221,22 @@ fun NotificationCard(
                     )
                 )
             }
-            Spacer(Modifier.height(4.dp))
-            if (!item.text.isNullOrBlank()) {
-                Text(
-                    text = item.text,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(2.dp))
             Text(
                 text = "Source: ${item.appName}",
-                style = MaterialTheme.typography.bodySmall
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.secondary
             )
-            Spacer(Modifier.height(4.dp))
-            TextButton(
-                onClick = { onDelete(item.id) },
-                modifier = Modifier.align(Alignment.End)
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
             ) {
-                Text("Delete")
+                TextButton(
+                    onClick = { onDelete(item.id) }
+                ) {
+                    Text("Delete")
+                }
             }
         }
     }
