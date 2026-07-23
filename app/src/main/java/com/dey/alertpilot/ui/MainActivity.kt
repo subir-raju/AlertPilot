@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -25,6 +26,9 @@ import com.dey.alertpilot.data.repository.NotificationRepository
 import com.dey.alertpilot.di.AppModule
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Settings
 
 
 class MainActivity : ComponentActivity() {
@@ -66,55 +70,140 @@ fun ImportantAlertsAppScreen(viewModel: MainViewModel) {
             )
         }
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = if (showImportantOnly) "Showing: Priority" else "Showing: Everything",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Button(onClick = { showImportantOnly = !showImportantOnly }) {
-                    Text(if (showImportantOnly) "Show: Everything" else "Show: Priority")
-                }
-            }
+        val list = if (showImportantOnly) important else all
 
-            Button(
-                onClick = {
-                    val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
-                    context.startActivity(intent)
-                },
-                modifier = Modifier
-                    .padding(horizontal = 12.dp)
-                    .fillMaxWidth()
-            ) {
-                Text("Open Notification Access Settings")
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            val list = if (showImportantOnly) important else all
-
-            if (list.isEmpty()) {
+        if (all.isEmpty()) {
+            Box(modifier = Modifier.padding(padding)) {
+                EmptyNotificationsScreen()
+                
+                // Keep the settings icon even when empty so users can grant permissions
+                var showMenu by remember { mutableStateOf(false) }
                 Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    contentAlignment = Alignment.TopEnd
                 ) {
-                    Text("No notifications captured yet.")
+                    IconButton(onClick = { showMenu = true }) {
+                        Icon(Icons.Default.Settings, contentDescription = "Settings")
+                    }
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Notification access") },
+                            onClick = {
+                                showMenu = false
+                                val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+                                context.startActivity(intent)
+                            }
+                        )
+                    }
                 }
-            } else {
-                NotificationList(list = list, viewModel = viewModel)
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .padding(padding)
+                    .fillMaxSize()
+            ) {
+                // Settings Icon Row
+                var showMenu by remember { mutableStateOf(false) }
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp),
+                    contentAlignment = Alignment.CenterEnd
+                ) {
+                    IconButton(onClick = { showMenu = true }) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Settings"
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Notification access") },
+                            onClick = {
+                                showMenu = false
+                                val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+                                context.startActivity(intent)
+                            }
+                        )
+                    }
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = if (showImportantOnly) "Showing: Priority" else "Showing: Everything",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Button(onClick = { showImportantOnly = !showImportantOnly }) {
+                        Text(if (showImportantOnly) "Show: Everything" else "Show: Priority")
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                if (list.isEmpty()) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "No priority notifications found.",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                } else {
+                    NotificationList(list = list, viewModel = viewModel)
+                }
             }
         }
+    }
+}
+
+@Composable
+fun EmptyNotificationsScreen() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.Notifications,
+            contentDescription = null,
+            modifier = Modifier.size(150.dp),
+            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
+        )
+        Spacer(modifier = Modifier.height(32.dp))
+        Text(
+            text = "No Notifications",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = "Stay Informed With Instant Notifications About Any Updates Or Changes To Your Plans.",
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
@@ -141,7 +230,7 @@ fun NotificationList(
                     Text(text = "Received: ${java.util.Date(item.postedAtMillis)}")
                     Spacer(Modifier.height(8.dp))
                     if (!item.text.isNullOrBlank()) {
-                        Text(text = item.text!!)
+                        Text(text = item.text)
                     }
                 }
             },
